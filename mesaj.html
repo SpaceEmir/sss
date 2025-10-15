@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sifreli Sohbet</title>
+<style>
+  body {
+    background-color: #ece5dd;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+  }
+
+  #chat-box {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .message {
+    padding: 10px 14px;
+    margin: 8px;
+    border-radius: 15px;
+    max-width: 70%;
+    line-height: 1.4em;
+  }
+
+  .me {
+    align-self: flex-end;
+    background-color: #dcf8c6;
+  }
+
+  .other {
+    align-self: flex-start;
+    background-color: #fff;
+  }
+
+  #input-area {
+    display: flex;
+    background: #fff;
+    padding: 10px;
+  }
+
+  #input {
+    flex: 1;
+    border: none;
+    border-radius: 20px;
+    padding: 10px;
+    background-color: #f1f1f1;
+  }
+
+  #send {
+    background-color: #128c7e;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 16px;
+    margin-left: 8px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div id="chat-box"></div>
+
+<div id="input-area">
+  <input id="input" type="text" placeholder="Mesaj yaz..." />
+  <button id="send">Gönder</button>
+</div>
+
+<script type="module">
+  // === Firebase modüllerini içe aktar ===
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+  // === Senin Firebase yapılandırman ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyCEXUHWNSlAm-_gNJp8xU3B_vEJCy0Jbos",
+    authDomain: "sifreli-sohbet.firebaseapp.com",
+    databaseURL: "https://sifreli-sohbet-default-rtdb.firebaseio.com", 
+    projectId: "sifreli-sohbet",
+    storageBucket: "sifreli-sohbet.firebasestorage.app",
+    messagingSenderId: "883478017527",
+    appId: "1:883478017527:web:1415adf2e6e88421baaaf2"
+  };
+
+  // === Firebase başlat ===
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // === DOM elemanları ===
+  const chatBox = document.getElementById("chat-box");
+  const input = document.getElementById("input");
+  const sendBtn = document.getElementById("send");
+
+  const username = prompt("İsmini yaz:");
+
+  // === Mesaj gönderme ===
+  sendBtn.onclick = () => {
+    const text = input.value.trim();
+    if (text === "") return;
+    const msg = {
+      user: username,
+      text: text,
+      time: Date.now()
+    };
+    push(ref(db, "messages"), msg);
+    input.value = "";
+  };
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") sendBtn.click();
+  });
+
+  // === Mesajları dinle ===
+  onChildAdded(ref(db, "messages"), snapshot => {
+    const msg = snapshot.val();
+    const div = document.createElement("div");
+    div.classList.add("message", msg.user === username ? "me" : "other");
+    div.textContent = `${msg.user}: ${msg.text}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+</script>
+
+</body>
+</html>
